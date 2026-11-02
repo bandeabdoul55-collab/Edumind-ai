@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D4ED8">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>EduMind · Abdoul BANDÉ</title>
+<style>
+:root{--bg:#F2F5FC;--ink:#0B1B4D;--mut:#4A5578;--card:#fff;--acc:#1D4ED8;--onacc:#fff;--accbg:#DCE7FF;--accink:#1E3A8A;--line:#D5DDF2;--badbg:#FDE4DE;--badink:#9A2A10;--gold:#FBBF24;--ongold:#1B1B1B;--mind:#D97706;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#071030;--ink:#EAF0FF;--mut:#A9B8E8;--card:#0E1B4A;--acc:#6C97FF;--onacc:#06113A;--accbg:#16296B;--accink:#CFE0FF;--line:#223272;--badbg:#4A1F18;--badink:#F8BBA9;--mind:#FBBF24;color-scheme:dark}}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:500 16px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+#app{max-width:480px;margin:0 auto;min-height:100%;box-sizing:border-box;padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:800;font-size:22px;color:var(--ink)}.logo b{color:var(--mind)}
+.small{font-size:14px;color:var(--mut);font-weight:600}
+h1{font:700 30px/1.15 Georgia,'Times New Roman',serif;margin:18px 0 0}
+p{margin:0;color:var(--mut)}
+.card{background:var(--card);border-radius:16px;padding:16px 18px}
+.card h2{margin:0 0 8px;font-size:15px;color:var(--acc)}
+.card ul{margin:0;padding-left:20px;line-height:1.6}
+.chip{align-self:flex-start;background:var(--accbg);color:var(--accink);font-size:13px;font-weight:700;padding:6px 12px;border-radius:999px}
+button{min-height:56px;border:0;border-radius:16px;background:var(--gold);color:var(--ongold);font:700 17px system-ui,sans-serif;padding:0 18px;cursor:pointer}
+button.alt{background:transparent;color:var(--acc);border:2px solid var(--acc)}
+button.link{min-height:44px;background:none;color:var(--acc);font-size:14px;padding:0 6px}
+button[disabled]{opacity:.45}
+.opt{text-align:left;min-height:52px;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:14px}
+.opt.ok{background:var(--accbg);border-color:var(--acc);color:var(--accink)}
+.opt.bad{background:var(--badbg);border-color:var(--badink);color:var(--badink)}
+.hist{text-align:left;background:var(--card);color:var(--ink);border-radius:14px;min-height:52px}
+input[type=password],input[type=text],input[type=date]{height:56px;box-sizing:border-box;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:0 14px;font:600 16px system-ui,sans-serif}
+.bar{height:8px;border-radius:4px;background:var(--line)}.bar i{display:block;height:8px;border-radius:4px;background:var(--acc)}
+.stack{display:flex;flex-direction:column;gap:10px}.grow{flex:1}
+.score{align-self:center;width:150px;height:150px;border-radius:50%;background:var(--acc);color:var(--onacc);display:flex;align-items:center;justify-content:center;font:700 42px system-ui,sans-serif}
+.err{background:var(--badbg);color:var(--badink);border-radius:14px;padding:12px 14px;font-weight:600}
+.spin{width:44px;height:44px;border-radius:50%;border:5px solid var(--line);border-top-color:var(--acc);animation:s 1s linear infinite;align-self:center}
+@keyframes s{to{transform:rotate(360deg)}}
+.hero{background:linear-gradient(135deg,#1D4ED8,#0B2A8A);color:#fff;border-radius:20px;padding:20px}
+.hero b{color:var(--gold)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cb{color:#fff;border-radius:18px;min-height:64px;font-size:16px;padding:0 12px}
+.paper,.paper *{color:#111}.paper{background:#fff;border-radius:6px;padding:22px 20px;box-shadow:0 2px 14px rgba(0,0,0,.3);font-family:Georgia,serif;line-height:1.6}
+.cd{background:var(--card);border-radius:16px;padding:14px 16px;text-align:right;word-break:break-all}
+.ck{min-height:56px;font-size:19px;padding:0;border-radius:14px;background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.ck.op{background:var(--accbg);color:var(--accink)}.ck.cl{background:var(--badbg);color:var(--badink)}.ck.eq{background:var(--gold);color:var(--ongold);border:0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="config.js"></script>
+<script>
+// Clé Gemini : laisse vide, tu la saisis dans Réglages (reste sur ton téléphone).
+const KEY_IN_CODE=(window.EDUMIND_KEY||"").trim();
+const MODELS=["gemini-3.8-flash","gemini-3.6-flash","gemini-2.5-flash"];
+const NAME='Abdoul BANDÉ',FIRST='Abdoul';
+const COL={'Maths':'#2457C5','Physique-Chimie':'#7B3FC4','Français':'#B8266F','SVT':'#1B6B45','Histoire-Géo':'#C2570C','Anglais':'#0E7C86'};
+const SUBJ=['Maths','Physique-Chimie','Français','SVT','Histoire-Géo','Anglais'];
+const app=document.getElementById('app');
+const store={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let D=Object.assign({key:store.get('edumind_key',''),date:'',results:[],errors:[],hist:[],fiches:[],days:{},devoirs:[],act:[]},store.get('eduv2',{}));
+const save=()=>store.set('eduv2',D);
+D.hist.forEach(x=>{if(!x.id)x.id=uid()});
+const getKey=()=>D.key||KEY_IN_CODE;
+const today=()=>new Date().toISOString().slice(0,10);
+let S={v:'home',err:'',lesson:null,qs:[],i:0,picked:null,good:0,bad:[],mode:'lesson',subj:'',next:'',t0:0},installEvt=null,tick=null;
+function h(t,a,...k){const e=document.createElement(t);for(const n in(a||{})){if(a[n]==null)continue;if(n==='class')e.className=a[n];else if(n==='on')for(const ev in a.on)e.addEventListener(ev,a.on[ev]);else e.setAttribute(n,a[n])}for(const c of k.flat())if(c!=null)e.append(c);return e}
+const hdr=(r)=>h('div',{class:'top'},h('span',{class:'logo'},h('img',{src:'icon-192.png',alt:'',width:'34',height:'34',style:'border-radius:9px;vertical-align:middle;margin-right:8px'}),'Edu',h('b',{},'Mind')),h('span',{class:'small'},r||''));
+const p2=t=>h('p',{},t);
+function fmt(t){t=mf(t);const out=[];const L=t.split('\n');L.forEach((ln,i)=>{if(/^\s*(-{3,}|\*{3,})\s*$/.test(ln))return;const hd=/^\s*#{1,6}\s+/.test(ln);ln=ln.replace(/^\s*#{1,6}\s+/,'').replace(/^\s*[*-]\s+/,'• ');const nodes=ln.split('**').map((p,j)=>j%2?h('strong',{},p):p);if(hd)out.push(h('strong',{},nodes));else out.push(...nodes);if(i<L.length-1)out.push('\n')});return out}
+function go(v,x){try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}Object.assign(S,x||{},{v});render()}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;render()});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+function daysLeft(){if(!D.date)return null;return Math.ceil((new Date(D.date)-new Date(today()))/864e5)}
+function streak(){let n=0,d=new Date();if(!D.days[today()])d.setDate(d.getDate()-1);while(D.days[d.toISOString().slice(0,10)]){n++;d.setDate(d.getDate()-1)}return n}
+
+async function shrink(file){
+  const url=URL.createObjectURL(file),img=new Image();
+  await new Promise((ok,ko)=>{img.onload=ok;img.onerror=ko;img.src=url});
+  const r=Math.min(1,1600/Math.max(img.width,img.height)),c=document.createElement('canvas');
+  c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+  return c.toDataURL('image/jpeg',0.82).split(',')[1];
+}
+const FORMAT=`Réponds UNIQUEMENT en JSON, sans texte autour. Chaque question : {"q":"","choix":["","","",""],"reponse":0,"explication":"une phrase"} où "reponse" est l’index du bon choix (une question peut être vrai/faux avec 2 choix). Français simple, réponses vérifiables et correctes. Écris les formules en texte simple (x², √, ×, ÷), jamais de $ ni de LaTeX.`;
+function gcfg(m,json,max){const c={};if(json)c.responseMimeType='application/json';if(max)c.maxOutputTokens=max;if(/gemini-3/.test(m))c.thinkingConfig={thinkingLevel:'low'};else if(/2\.5/.test(m))c.thinkingConfig={thinkingBudget:0};return c}
+async function modelList(key){
+  if(D.mlist&&Date.now()-(D.mt||0)<864e5)return D.mlist;
+  try{
+    const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),8000);
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key='+encodeURIComponent(key),{signal:ctl.signal});clearTimeout(to);
+    const j=await r.json();
+    const ns=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace('models/','')).filter(n=>/^gemini-[0-9.]+-flash/.test(n)&&!/image|tts|live|audio|embed|robotics|computer|deep|custom|exp|thinking/.test(n));
+    const ver=n=>parseFloat((n.match(/gemini-([0-9.]+)/)||[0,0])[1]);
+    ns.sort((x,y)=>(/preview/.test(x)-/preview/.test(y))||(/lite/.test(y)-/lite/.test(x))||(ver(y)-ver(x)));
+    if(ns.length){D.mlist=ns.slice(0,6);D.mt=Date.now();save();return D.mlist}
+  }catch(e){}
+  return [];
+}
+async function callGemini(text,imgs,json=true,max=0,tmo=30000){
+  const key=getKey();let last='',slow=false;
+  if(!D.key&&KEY_IN_CODE){D.use=D.use||{};const t0=today();if((D.use[t0]||0)>=30)throw new Error('Limite du jour atteinte (30 demandes sur cet appareil). Reviens demain, ou mets ta propre clé dans Réglages.');D.use[t0]=(D.use[t0]||0)+1;save()}
+  const names=[...new Set([D.model,...await modelList(key),...MODELS].filter(Boolean))].slice(0,6);
+  const parts=[{text}].concat((imgs||[]).map(d=>({inline_data:{mime_type:'image/jpeg',data:d}})));
+  for(const m of names){
+    const send=async(c)=>{const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),tmo);
+      try{return await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent?key='+encodeURIComponent(key),{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts}],generationConfig:c})})}finally{clearTimeout(to)}};
+    let r;
+    try{
+      r=await send(gcfg(m,json,max));
+      if(r.status===400){const j0=await r.clone().json().catch(()=>({}));if(/think/i.test((j0.error&&j0.error.message)||'')){const c=gcfg(m,json,max);delete c.thinkingConfig;r=await send(c)}}
+    }catch(e){if(e.name==='AbortError'){slow=true;continue}throw e}
+    if(r.status===429){last='Trop de demandes. Attends une minute puis réessaie.';continue}
+    if(r.status===400||r.status===403){const j=await r.json().catch(()=>({}));const msg=(j.error&&j.error.message)||'';if(/api key|API_KEY|permission/i.test(msg))throw new Error('Clé IA refusée. Vérifie-la dans Réglages.');last='('+r.status+') '+msg;continue}
+    if(!r.ok){last='Erreur '+r.status;continue}
+    const j=await r.json(),t=((j.candidates||[])[0]||{}).content;
+    const txt=(t&&t.parts?t.parts.map(x=>x.text||'').join(''):'').trim();
+    if(!txt){last='Réponse vide de l’IA.';continue}
+    let out=txt;
+    if(json){try{out=JSON.parse(txt.replace(/```json|```/g,'').trim())}catch(e){last='Réponse illisible de l’IA. Réessaie.';continue}}
+    D.model=m;save();return out;
+  }
+  throw new Error(last||(slow?'L’IA met trop de temps à répondre. Réessaie dans un instant.':'Le service IA ne répond pas. Réessaie.'));
+}
+const bad=e=>go('home',{err:e instanceof TypeError?'Pas de connexion. Vérifie internet puis réessaie.':e.message||'Une erreur est survenue.'});
+async function analyse(files){
+  go('load',{err:''});
+  try{
+    const imgs=await Promise.all(files.map(shrink));
+    const r=await callGemini(`Tu es EduMind, assistant pour un élève de 3ème qui prépare le BEPC (Afrique francophone). Matière : ${S.subj}. Les photos montrent une leçon du cahier. Lis uniquement ce qui est visible, sans inventer. Format : {"titre":"","resume":["5 à 8 phrases courtes : notions clés, définitions, formules, méthodes"],"fiche":[{"t":"nom court","v":"formule, date ou définition exacte à apprendre par cœur"}] (4 à 10 éléments),"questions":[6 questions variées de niveau BEPC]}. Écris les formules en texte simple, sans LaTeX. ${FORMAT} Si illisible : {"erreur":"explication courte pour reprendre la photo"}.`,imgs,true,0,45000);
+    if(!r||r.erreur||!Array.isArray(r.questions)||!r.questions.length)throw new Error(r&&r.erreur||'Je n’ai pas réussi à lire cette leçon. Reprends la photo, bien droite et bien éclairée.');
+    r.matiere=S.subj;(r.fiche||[]).forEach(f=>{if(f&&f.t&&f.v&&!D.fiches.some(x=>x.m===S.subj&&x.t===f.t))D.fiches.push({m:S.subj,t:String(f.t),v:String(f.v)})});const lid=uid();D.hist.unshift({id:lid,t:Date.now(),subj:S.subj,lesson:r});D.hist=D.hist.slice(0,100);logAct(S.subj);save();
+    go('sum',{lesson:r,qs:r.questions,mode:'lesson',lid});
+  }catch(e){bad(e)}
+}
+async function startExam(m){
+  go('load',{err:'',subj:m});
+  try{
+    const r=await callGemini(`Génère 8 questions de niveau BEPC (classe de 3ème, programme francophone d’Afrique de l’Ouest) en ${m}, de difficulté variée, comme à l’examen. Format : {"questions":[...]}. ${FORMAT}`);
+    if(!r||!Array.isArray(r.questions)||!r.questions.length)throw new Error('Impossible de créer le sujet. Réessaie.');
+    startQuiz(r.questions,'exam',m);
+  }catch(e){bad(e)}
+}
+function startQuiz(qs,mode,subj){go('quiz',{qs,mode,subj,i:0,picked:null,good:0,bad:[],t0:Date.now()})}
+function answer(n){
+  const q=S.qs[S.i];if(S.picked!==null)return;const ok=n===q.reponse;S.picked=n;ok?S.good++:S.bad.push(q);
+  if(S.mode==='errors'){const e=D.errors.find(x=>x.q===q.q);if(e){if(ok){e.ok=(e.ok||0)+1;if(e.ok>=2)D.errors=D.errors.filter(x=>x!==e)}else e.ok=0}}
+  else if(!ok&&S.mode!=='retry'&&!D.errors.some(x=>x.q===q.q))D.errors.push(Object.assign({},q,{m:S.subj,ok:0}));
+  save();render();
+}
+function finish(){
+  if(S.subj)logAct(S.subj);
+  if(S.mode!=='retry')D.days[today()]=(D.days[today()]||0)+1;
+  save();go('score');
+}
+function pick(){
+  const mk=(cam,label,alt)=>{const inp=h('input',{type:'file',accept:'image/*',style:'display:none',on:{change:e=>{const f=[...e.target.files];if(f.length)analyse(f)}}});if(cam)inp.setAttribute('capture','environment');else inp.setAttribute('multiple','');return [inp,h('button',{class:alt?'alt':'',on:{click:()=>inp.click()}},label)]};
+  return h('div',{class:'stack'},mk(true,'Prendre une photo',false),mk(false,'Choisir des photos',true));
+}
+
+const bubble=(r,t)=>h('div',{style:'white-space:pre-wrap;padding:12px 14px;border-radius:14px;max-width:90%;'+(r==='u'?'align-self:flex-end;background:var(--accbg);color:var(--accink)':'align-self:flex-start;background:var(--card)')},r==='a'?fmt(t):t);
+async function ask(inp,f,ph){
+  const t=inp.value.trim(),file=f.files[0];if(!t&&!file)return;
+  S.chat=S.chat||[];const box=document.getElementById('msgs');if(!S.chat.length)box.replaceChildren();
+  const shown=t||'(photo)';S.chat.push({r:'u',t:shown});box.append(bubble('u',shown));
+  const wait=bubble('a','Le prof réfléchit…');box.append(wait);box.scrollTop=box.scrollHeight;inp.value='';ph.textContent='Photo';
+  try{
+    const img=file?[await shrink(file)]:[];f.value='';
+    const hist=S.chat.slice(-9,-1).map(m=>(m.r==='u'?'Élève : ':'Prof : ')+m.t).join('\n');
+    const a=await callGemini(`Tu es un professeur patient et bienveillant pour un élève de 3ème qui prépare le BEPC (Afrique francophone). Réponds de façon courte et adaptée à la question : si l’élève salue, salue-le et demande sur quelle matière ou quel exercice il veut travailler. Quand il pose une vraie question, explique étape par étape, en français simple, avec un exemple. N’utilise aucun formatage Markdown (pas de ###, de ** ni de ---). Écris les formules en texte simple, sans LaTeX. Si tu n’es pas sûr, dis-le au lieu d’inventer. Termine par une courte question pour vérifier que l’élève a compris.\n${hist}\nÉlève : ${t||'Explique cet exercice.'}`,img,false,900,15000);
+    wait.replaceChildren(...fmt(a));S.chat.push({r:'a',t:a});
+  }catch(e){wait.textContent=e instanceof TypeError?'Pas de connexion.':e.message;S.chat.pop()}
+  box.scrollTop=box.scrollHeight;
+}
+async function startExo(m,topic){
+  go('load',{err:'',subj:m});
+  try{
+    const r=await callGemini(`Crée 3 exercices de niveau BEPC (3ème, programme francophone d’Afrique de l’Ouest) en ${m}${topic?', sur le chapitre : '+topic:''}. Pour chacun, une correction détaillée étape par étape, juste et vérifiée. Écris les formules en texte simple, sans LaTeX. Format JSON : {"exos":[{"enonce":"","correction":["étape 1","étape 2"]}]}`);
+    if(!r||!Array.isArray(r.exos)||!r.exos.length)throw new Error('Impossible de créer les exercices. Réessaie.');
+    go('exo',{exos:r.exos,ei:0,show:false});
+  }catch(e){bad(e)}
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+const SUP={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻','n':'ⁿ'},SUB='₀₁₂₃₄₅₆₇₈₉';
+function mf(t){t=String(t==null?'':t);
+  t=t.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,'($1)/($2)').replace(/\\sqrt\s*\{([^{}]*)\}/g,'√($1)').replace(/\\times/g,'×').replace(/\\div/g,'÷').replace(/\\cdot/g,'·').replace(/\\pi/g,'π').replace(/\\leq?(?![a-z])/g,'≤').replace(/\\geq?(?![a-z])/g,'≥').replace(/\\neq/g,'≠').replace(/\\circ/g,'°').replace(/\\(?:left|right)/g,'').replace(/\\[,;! ]/g,' ').replace(/\\text\s*\{([^{}]*)\}/g,'$1');
+  t=t.replace(/\^\{([0-9n+\-]+)\}/g,(m,a)=>[...a].map(c=>SUP[c]||c).join('')).replace(/\^(-?[0-9]+|n)/g,(m,a)=>[...a].map(c=>SUP[c]||c).join('')).replace(/_\{?([0-9]+)\}?/g,(m,a)=>[...a].map(c=>SUB[+c]).join(''));
+  return t.replace(/\$/g,'')}
+function logAct(m){if(!m)return;D.act.push({m,t:Date.now()});D.act=D.act.slice(-200)}
+function lastAct(m){let t=0;D.act.forEach(x=>{if(x.m===m&&x.t>t)t=x.t});D.hist.forEach(x=>{if(x.subj===m&&x.t>t)t=x.t});return t}
+function leastWorked(){return SUBJ.slice().sort((a,b)=>lastAct(a)-lastAct(b))[0]}
+function speakBtn(L){
+  const b=h('button',{class:'alt'},'🔊 Lire à voix haute');
+  if(!('speechSynthesis' in window)){b.disabled=true;b.textContent='Lecture à voix haute non disponible';return b}
+  let on=false;
+  b.addEventListener('click',()=>{
+    if(on){speechSynthesis.cancel();on=false;b.textContent='🔊 Lire à voix haute';return}
+    const parts=[L.titre||'',...(L.resume||[]),...(L.fiche||[]).map(f=>f.t+' : '+f.v)].map(x=>mf(x).replace(/[*#]/g,'')).filter(Boolean);
+    speechSynthesis.cancel();on=true;b.textContent='⏹ Arrêter la lecture';
+    parts.forEach((x,i)=>{const u=new SpeechSynthesisUtterance(x);u.lang='fr-FR';u.rate=0.95;if(i===parts.length-1)u.onend=()=>{on=false;b.textContent='🔊 Lire à voix haute'};speechSynthesis.speak(u)});
+  });return b}
+function delLesson(){
+  if(!S.lid||!D.hist.some(x=>x.id===S.lid))return null;
+  const b=h('button',{class:'link',style:'color:var(--badink)'},'Supprimer cette leçon');let armed=false;
+  b.addEventListener('click',()=>{if(!armed){armed=true;b.textContent='Appuie encore pour confirmer';setTimeout(()=>{armed=false;b.textContent='Supprimer cette leçon'},4000)}else{D.hist=D.hist.filter(x=>x.id!==S.lid);save();go('lessons')}});return b}
+async function makeDevoir(ids){
+  const ls=(ids||[]).map(id=>D.hist.find(x=>x.id===id)).filter(Boolean);
+  if(!ls.length)return bad(new Error('Choisis au moins une leçon.'));
+  if(!getKey())return bad(new Error('Ajoute d’abord ta clé IA dans Réglages.'));
+  const subj=ls[0].subj;go('load',{err:'',subj});
+  const txt=ls.map(x=>'Leçon : '+(x.lesson.titre||'')+'\n'+(x.lesson.resume||[]).join('\n')+'\n'+(x.lesson.fiche||[]).map(f=>f.t+' : '+f.v).join('\n')).join('\n\n').slice(0,6000);
+  try{
+    const r=await callGemini(`Crée un devoir à la maison pour un élève de 3ème qui prépare le BEPC (matière : ${subj}), à partir de ces leçons :\n${txt}\n\nLe devoir contient 5 exercices numérotés, abordables : le premier est très simple, la difficulté monte doucement, le dernier reste faisable. Chaque exercice a un énoncé clair et une correction détaillée étape par étape, juste et vérifiée. Écris les formules en texte simple (x², √, ×, ÷), jamais de $ ni de LaTeX. Format JSON : {"titre":"Devoir de ${subj} : sujet","exos":[{"enonce":"","correction":["étape 1","étape 2"]}]}`,[],true,0,40000);
+    if(!r||!Array.isArray(r.exos)||!r.exos.length)throw new Error('Impossible de créer le devoir. Réessaie.');
+    const d={id:uid(),t:Date.now(),subj,titre:String(r.titre||'Devoir de '+subj),lids:ids,exos:r.exos.slice(0,6)};
+    D.devoirs.unshift(d);D.devoirs=D.devoirs.slice(0,50);D.days[today()]=(D.days[today()]||0)+1;logAct(subj);save();go('sheet',{did:d.id});
+  }catch(e){bad(e)}
+}
+function exoBlock(x,i){
+  const c=h('div',{style:'display:none;margin-top:8px;padding:10px 12px;background:#EEF3FF;border-radius:8px'},h('strong',{},'Correction'),h('ol',{style:'margin:6px 0 0;padding-left:20px'},(x.correction||[]).map(t=>h('li',{},fmt(t)))));
+  const b=h('button',{class:'alt',style:'min-height:40px;font-size:14px;margin-top:8px;color:#1D4ED8;border-color:#1D4ED8;padding:0 14px',on:{click:()=>{const o=c.style.display==='none';c.style.display=o?'block':'none';b.textContent=o?'Cacher la correction':'Voir la correction'}}},'Voir la correction');
+  return h('div',{style:'margin:16px 0;padding-bottom:14px;border-bottom:1px dashed #bbb'},h('strong',{style:'color:#0B1B4D'},'Exercice '+(i+1)),h('div',{style:'white-space:pre-wrap;margin-top:4px'},fmt(x.enonce)),b,c)}
+function calcEval(src){
+  const s=String(src).replace(/\s/g,'').replace(/,/g,'.');let i=0;const pk=()=>s[i];
+  const num=()=>{let j=i;while(j<s.length&&/[0-9.]/.test(s[j]))j++;const v=parseFloat(s.slice(i,j));if(j===i||isNaN(v))throw 1;i=j;return v};
+  const expr=()=>{let v=term();while(pk()==='+'||pk()==='−'||pk()==='-'){const o=s[i++],r=term();v=o==='+'?v+r:v-r}return v};
+  const term=()=>{let v=unary();for(;;){const c=pk();if(c==='×'||c==='*'){i++;v*=unary()}else if(c==='÷'||c==='/'){i++;const r=unary();if(r===0)throw 1;v/=r}else if(c==='('||c==='π'||c==='√'||(c&&/[a-z]/.test(c)))v*=unary();else break}return v};
+  const unary=()=>{const c=pk();if(c==='−'||c==='-'){i++;return -unary()}if(c==='+'){i++;return unary()}return pow()};
+  const pow=()=>{const b=post();if(pk()==='^'){i++;return Math.pow(b,unary())}return b};
+  const post=()=>{let v=prim();while(pk()==='%'){i++;v/=100}return v};
+  const prim=()=>{const c=pk();
+    if(c==='('){i++;const v=expr();if(pk()===')')i++;return v}
+    if(c==='π'){i++;return Math.PI}
+    if(c==='√'){i++;const x=prim();if(x<0)throw 1;return Math.sqrt(x)}
+    if(c&&/[a-z]/.test(c)){let j=i;while(/[a-z]/.test(s[j]||''))j++;const nm=s.slice(i,j);i=j;if(pk()!=='(')throw 1;i++;const a=expr();if(pk()===')')i++;
+      const r=Math.PI/180;let v;if(nm==='sin')v=Math.sin(a*r);else if(nm==='cos')v=Math.cos(a*r);else if(nm==='tan'){if(Math.abs(Math.cos(a*r))<1e-12)throw 1;v=Math.tan(a*r)}else throw 1;return Math.abs(v)<1e-12?0:v}
+    return num()};
+  const v=expr();if(i<s.length||!isFinite(v))throw 1;return v}
+function calcKey(k){
+  const ops='+−×÷^%';
+  if(k==='C'){S.ce='';S.pv='';S.done=false}
+  else if(k==='⌫'){S.ce=S.ce.replace(/(sin\(|cos\(|tan\(|√\()$|.$/,'');S.done=false}
+  else if(k==='='){if(S.ce){try{const v=calcEval(S.ce);let r=String(parseFloat(v.toPrecision(12)));if(/e/.test(r))r=v.toFixed(10).replace(/0+$/,'').replace(/\.$/,'');S.pv=S.ce+' =';S.ce=r;S.done=true}catch(e){S.pv='Erreur'}}}
+  else{if(S.done){if(!ops.includes(k))S.ce='';S.done=false}S.ce+=(k==='x²'?'^2':k===','?'.':k)}
+  drawCalc()}
+function drawCalc(){const e=document.getElementById('cex'),p=document.getElementById('cpv');if(e)e.textContent=(S.ce||'0').replace(/\./g,',').replace(/-/g,'−');if(p)p.textContent=(S.pv||'').replace(/\./g,',').replace(/-/g,'−')}
+const back=()=>h('button',{class:'link',on:{click:()=>go('home')}},'Retour');
+function render(){
+  clearInterval(tick);app.replaceChildren();
+  if(S.v==='key'){
+    const k=h('input',{type:'password','aria-label':'Clé IA',placeholder:'Colle ta clé ici',value:D.key||''}),d=h('input',{type:'date','aria-label':'Date du BEPC',value:D.date||''});
+    const res=h('p',{style:'color:var(--ink)'},'');
+    const testKey=async()=>{D.key=k.value.trim();D.model='';D.mlist=null;save();res.textContent='Test en cours… (peut prendre jusqu’à 1 minute)';const t0=Date.now();try{await callGemini('Réponds juste : ok',[],false,0,15000);res.textContent='Clé OK ✅ Modèle : '+D.model+' · '+((Date.now()-t0)/1000).toFixed(1)+' s'}catch(e){res.textContent='Problème : '+(e instanceof TypeError?'pas de connexion ou accès bloqué.':e.message)}};
+    app.append(hdr('Réglages'),h('h1',{},'Réglages'),p2(KEY_IN_CODE?'EduMind fonctionne déjà avec une clé partagée (30 demandes par jour). Pour ne pas avoir de limite, tu peux ajouter ta propre clé gratuite : aistudio.google.com.':'Clé IA gratuite : crée-la sur aistudio.google.com (compte Google), puis colle-la ici. Elle reste sur ton téléphone.'),k,p2('Date de ton BEPC :'),d,res,h('div',{class:'grow'}),
+      h('button',{class:'alt',on:{click:testKey}},'Tester la clé'),h('button',{on:{click:()=>{D.key=k.value.trim();D.date=d.value;save();go('home')}}},'Enregistrer'),h('button',{class:'alt',on:{click:()=>go('home')}},'Retour'));
+  }
+  if(S.v==='home'){
+    const dl=daysLeft(),w=leastWorked(),n=D.days[today()]||0,st=streak(),k=!!getKey();
+    const cb=(l,c,fn,dis,span)=>h('button',{class:'cb',style:'background:'+c+(span?';grid-column:span 2':''),disabled:dis?'':null,on:{click:fn}},l);
+    app.append(hdr(h('button',{class:'link',on:{click:()=>go('key')}},'Réglages')),
+      h('div',{},h('h1',{style:'margin:0'},'Bienvenue dans l’appli d’',h('span',{style:'color:var(--acc)'},NAME)),h('p',{style:'margin-top:8px'},'Apprendre · Réviser · Réussir')));
+    if(S.err)app.append(h('div',{class:'err',role:'alert'},S.err));
+    app.append(h('div',{class:'hero'},h('div',{style:'font:700 24px Georgia,serif'},dl===null?'Ton BEPC':dl>0?'BEPC dans '+dl+' jours':dl===0?'BEPC aujourd’hui !':'BEPC passé'),
+      h('div',{style:'margin-top:6px'},dl===null?'Ajoute la date dans Réglages.':'Série : '+st+' jour(s) · Aujourd’hui : '+n+' quiz'),h('div',{style:'margin-top:12px;font-weight:700'},'À travailler aujourd’hui : ',h('b',{},w))));
+    if(!k)app.append(h('div',{class:'err'},'Ajoute d’abord ta clé IA dans Réglages.'));
+    app.append(h('div',{class:'stack',style:'gap:12px'},h('button',{disabled:k?null:'',on:{click:()=>go('subj',{next:'lesson'})}},'📸  Nouvelle leçon (photo)'),
+      h('div',{class:'grid'},[cb('📝  Devoirs','#4338CA',()=>go('dev')),cb('📚  Mes leçons','#1D4ED8',()=>go('lessons')),cb('🧑‍🏫  Mon prof (IA)','#0E7490',()=>go('prof',{})),cb('✍️  Exercices corrigés','#B45309',()=>go('exoset',{})),cb('🗂️  Mes fiches','#7E22CE',()=>go('fiches',{})),cb('📅  Planning','#15803D',()=>go('plan',{})),
+        cb('📕  Cahier d’erreurs ('+D.errors.length+')','#BE123C',()=>go('errors')),cb('⏱️  Entraînement BEPC','#BE185D',()=>go('subj',{next:'exam'}),!k),cb('🧰  Outils','#334155',()=>go('outils'),false,true)])));
+    if(installEvt)app.append(h('button',{class:'alt',on:{click:async()=>{installEvt.prompt();await installEvt.userChoice;installEvt=null;render()}}},'Installer l’appli'));
+    app.append(h('p',{class:'small',style:'text-align:center'},'Créée par '+NAME));
+  }
+  if(S.v==='subj')app.append(hdr(),h('h1',{},S.next==='exam'?'Quelle matière ?':'Quelle matière est cette leçon ?'),h('div',{class:'stack'},SUBJ.map(m=>h('button',{class:'cb',style:'background:'+COL[m],on:{click:()=>S.next==='exam'?startExam(m):go('photo',{subj:m})}},m))),h('div',{class:'grow'}),h('button',{class:'link',on:{click:()=>go('home')}},'Retour'));
+  if(S.v==='photo')app.append(hdr(S.subj),h('h1',{},'Photographie ta leçon'),p2('Bonne lumière, page entière, écriture lisible. Tu peux envoyer plusieurs pages.'),h('div',{class:'grow'}),pick(),h('button',{class:'link',on:{click:()=>go('home')}},'Retour'));
+
+  if(S.v==='prof'){
+    const msgs=h('div',{id:'msgs',style:'flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:200px'});
+    (S.chat||[]).forEach(m=>msgs.append(bubble(m.r,m.t)));
+    if(!(S.chat||[]).length)msgs.append(p2('Pose ta question comme à un prof : une notion, un exercice que tu ne comprends pas, une méthode. Tu peux joindre la photo d’un exercice.'));
+    const inp=h('input',{type:'text','aria-label':'Ta question',placeholder:'Écris ta question…',style:'flex:1;min-width:0'}),f=h('input',{type:'file',accept:'image/*',style:'display:none'});
+    const ph=h('button',{class:'alt',style:'padding:0 12px',on:{click:()=>f.click()}},'Photo');
+    f.addEventListener('change',()=>{ph.textContent=f.files[0]?'Photo ✓':'Photo'});
+    app.append(hdr(back()),h('h1',{style:'margin-top:0;font-size:26px'},'Mon prof'),msgs,h('div',{style:'display:flex;gap:8px'},ph,inp,h('button',{style:'padding:0 16px',on:{click:()=>ask(inp,f,ph)}},'Envoyer'),f));
+    msgs.scrollTop=msgs.scrollHeight;
+  }
+  if(S.v==='fiches'){
+    app.append(hdr(back()),h('h1',{style:'margin-top:0'},'Mes fiches'),p2(D.fiches.length?'Lis le titre, essaie de t’en souvenir, puis touche pour vérifier.':'Tes fiches apparaîtront ici après ta première leçon en photo.'));
+    SUBJ.forEach(m=>{const l=D.fiches.filter(x=>x.m===m);if(!l.length)return;
+      app.append(h('h2',{style:'margin:8px 0 0;color:var(--acc);font-size:16px'},m),h('div',{class:'stack'},l.map(f=>{const v=h('span',{style:'display:none;margin-top:6px;color:var(--accink)'},mf(f.v));return h('button',{class:'hist',style:'padding:10px 16px',on:{click:()=>{v.style.display=v.style.display==='none'?'block':'none'}}},h('strong',{},mf(f.t)),v)})))});
+  }
+  if(S.v==='plan'){
+    const dl=daysLeft(),cyc=SUBJ;
+    app.append(hdr(back()),h('h1',{style:'margin-top:0'},'Planning'),p2(dl>0?dl+' jours avant le BEPC. Les matières tournent chaque jour, à égalité.':'Ajoute la date du BEPC dans Réglages pour un compte à rebours.'));
+    for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()+i);const n=Math.floor(d.getTime()/864e5),a=cyc[(2*n)%6],b=cyc[(2*n+1)%6];
+      const tasks=d.getDay()===0?['Repos léger : relis tes fiches','Cahier d’erreurs ('+D.errors.length+')']:['Leçon ou quiz : '+a,'Devoir ou exercices : '+b,'Cahier d’erreurs (10 min)'];
+      app.append(h('div',{class:'card'},h('h2',{},d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+(i===0?' · Aujourd’hui':'')),h('ul',{},tasks.map(t=>h('li',{},t)))))}
+  }
+  if(S.v==='exoset'){
+    const t=h('input',{type:'text','aria-label':'Chapitre',placeholder:'Chapitre (facultatif), ex. Pythagore'});
+    app.append(hdr(back()),h('h1',{style:'margin-top:0'},'Exercices corrigés'),p2('Choisis une matière et, si tu veux, un chapitre.'),t,h('div',{class:'stack'},SUBJ.map(m=>h('button',{class:'cb',style:'background:'+COL[m],on:{click:()=>startExo(m,t.value.trim())}},m))));
+  }
+  if(S.v==='exo'){
+    const x=S.exos[S.ei],last=S.ei+1>=S.exos.length;
+    app.append(hdr('Exercice '+(S.ei+1)+' sur '+S.exos.length),h('span',{class:'chip'},S.subj),h('div',{class:'card',style:'white-space:pre-wrap'},fmt(x.enonce)),p2('Cherche d’abord seul sur ton cahier, puis regarde la correction.'));
+    if(S.show)app.append(h('div',{class:'card'},h('h2',{},'Correction'),h('ol',{style:'margin:0;padding-left:20px;line-height:1.6'},(x.correction||[]).map(c=>h('li',{},fmt(c))))));
+    app.append(h('div',{class:'grow'}));
+    app.append(S.show?h('button',{on:{click:()=>{if(last){D.days[today()]=(D.days[today()]||0)+1;logAct(S.subj);save();go('home')}else go('exo',{ei:S.ei+1,show:false})}}},last?'Terminer':'Exercice suivant'):h('button',{on:{click:()=>go('exo',{show:true})}},'Voir la correction'),h('button',{class:'alt',on:{click:()=>go('home')}},'Retour'));
+  }
+  if(S.v==='errors'){
+    app.append(hdr(back()),h('h1',{style:'margin-top:0'},'Cahier d’erreurs'),p2(D.errors.length?D.errors.length+' question(s) à retravailler. Une question disparaît après 2 bonnes réponses de suite.':'Aucune erreur pour l’instant. Bravo !'));
+    if(D.errors.length){
+      app.append(h('button',{on:{click:()=>startQuiz(D.errors.slice(0,8),'errors','')}},'Réviser mes erreurs'));
+      D.errors.forEach(e=>app.append(h('div',{class:'card'},h('span',{class:'chip',style:'display:inline-block;margin-bottom:8px'},e.m||'Question'),h('div',{style:'font-weight:700'},mf(e.q)),h('p',{style:'color:var(--accink);margin-top:6px'},'Bonne réponse : '+mf((e.choix||[])[e.reponse])),h('p',{style:'margin-top:4px'},mf(e.explication||'')),
+        h('button',{class:'alt',style:'min-height:44px;margin-top:10px;width:100%;color:var(--badink);border-color:var(--badink)',on:{click:()=>{D.errors=D.errors.filter(x=>x!==e);save();render()}}},'Supprimer'))));
+      const all=h('button',{class:'alt',style:'color:var(--badink);border-color:var(--badink)'},'Tout vider');let armed=false;
+      all.addEventListener('click',()=>{if(!armed){armed=true;all.textContent='Appuie encore pour tout supprimer';setTimeout(()=>{armed=false;all.textContent='Tout vider'},4000)}else{D.errors=[];save();render()}});app.append(all)}
+  }
+  if(S.v==='lessons'){
+    app.append(hdr(back()),h('h1',{style:'margin-top:0'},'Mes leçons'),p2(D.hist.length?'Touche une leçon pour la relire. Elles marchent sans connexion.':'Tes leçons apparaîtront ici après ta première photo.'));
+    SUBJ.forEach(m=>{const l=D.hist.filter(x=>x.subj===m);if(!l.length)return;
+      app.append(h('h2',{style:'margin:8px 0 0;font-size:16px;color:var(--acc)'},m+' ('+l.length+')'),h('div',{class:'stack'},l.map(x=>h('button',{class:'hist',on:{click:()=>go('sum',{lesson:x.lesson,qs:x.lesson.questions,subj:x.subj,mode:'lesson',lid:x.id})}},(x.lesson.titre||'Leçon')+' · '+new Date(x.t).toLocaleDateString('fr-FR')))))});
+  }
+  if(S.v==='dev')app.append(hdr(back()),h('h1',{style:'margin-top:0'},'Devoirs'),p2('Choisis une matière : tu verras tes devoirs et tu pourras en créer un.'),h('div',{class:'stack'},SUBJ.map(m=>{const nl=D.hist.filter(x=>x.subj===m).length,nd=D.devoirs.filter(x=>x.subj===m).length;return h('button',{class:'cb',style:'background:'+COL[m]+';display:flex;justify-content:space-between;align-items:center;text-align:left',on:{click:()=>go('devsub',{subj:m,sel:[]})}},h('span',{},m),h('small',{style:'font-weight:600'},nl+' leçon(s) · '+nd+' devoir(s)'))})));
+  if(S.v==='devsub'){
+    const ls=D.hist.filter(x=>x.subj===S.subj),ds=D.devoirs.filter(x=>x.subj===S.subj);
+    app.append(hdr(h('button',{class:'link',on:{click:()=>go('dev')}},'Retour')),h('h1',{style:'margin-top:0'},S.subj),h('h2',{style:'margin:0;font-size:16px;color:var(--acc)'},'Mes devoirs'));
+    if(!ds.length)app.append(p2('Aucun devoir pour l’instant.'));
+    ds.forEach(d=>app.append(h('button',{class:'hist',on:{click:()=>go('sheet',{did:d.id})}},d.titre+' · '+new Date(d.t).toLocaleDateString('fr-FR'))));
+    app.append(h('h2',{style:'margin:12px 0 0;font-size:16px;color:var(--acc)'},'Créer un devoir'));
+    if(!ls.length)app.append(p2('Résume d’abord une leçon de cette matière.'));
+    else{
+      app.append(p2('Coche 1 à 3 leçons :'));
+      const btn=h('button',{disabled:'',on:{click:()=>makeDevoir(S.sel)}},'Créer le devoir (0)');
+      const upd=()=>{const n=S.sel.length;btn.textContent=n>3?'Choisis 3 leçons au maximum':'Créer le devoir ('+n+')';if(n>=1&&n<=3)btn.removeAttribute('disabled');else btn.setAttribute('disabled','')};
+      ls.forEach(x=>{const c=h('input',{type:'checkbox',style:'width:22px;height:22px'});c.addEventListener('change',()=>{S.sel=c.checked?[...S.sel,x.id]:S.sel.filter(i=>i!==x.id);upd()});
+        app.append(h('label',{class:'card',style:'display:flex;gap:12px;align-items:center'},c,(x.lesson.titre||'Leçon')+' · '+new Date(x.t).toLocaleDateString('fr-FR')))});
+      app.append(btn)}
+  }
+  if(S.v==='sheet'){
+    const d=D.devoirs.find(x=>x.id===S.did);if(!d){go('dev');return}
+    app.append(hdr(h('button',{class:'link',on:{click:()=>go('devsub',{subj:d.subj,sel:[]})}},'Retour')));
+    app.append(h('div',{class:'paper'},h('div',{style:'display:flex;justify-content:space-between;font-size:13px'},h('span',{},d.subj.toUpperCase()),h('span',{},new Date(d.t).toLocaleDateString('fr-FR'))),
+      h('h1',{style:'margin:8px 0 4px;color:#0B1B4D;font-size:24px'},mf(d.titre)),h('div',{style:'margin:0 0 8px'},'Nom : ______________________'),h('hr'),d.exos.map((x,i)=>exoBlock(x,i))));
+    const del=h('button',{class:'link',style:'color:var(--badink)'},'Supprimer ce devoir');let armed=false;
+    del.addEventListener('click',()=>{if(!armed){armed=true;del.textContent='Appuie encore pour confirmer';setTimeout(()=>{armed=false;del.textContent='Supprimer ce devoir'},4000)}else{D.devoirs=D.devoirs.filter(x=>x.id!==d.id);save();go('devsub',{subj:d.subj,sel:[]})}});app.append(del);
+  }
+  if(S.v==='outils')app.append(hdr(back()),h('h1',{style:'margin-top:0'},'Outils'),h('div',{class:'stack'},h('button',{class:'cb',style:'background:#334155',on:{click:()=>go('calc')}},'🧮  Calculatrice')));
+  if(S.v==='calc'){
+    S.ce=S.ce||'';S.pv=S.pv||'';
+    const keys=['C','⌫','(',')','sin(','cos(','tan(','√(','7','8','9','÷','4','5','6','×','1','2','3','−','0',',','^','+','π','%','x²','='];
+    app.append(hdr(h('button',{class:'link',on:{click:()=>go('outils')}},'Retour')),h('h1',{style:'margin:0'},'Calculatrice'),h('div',{class:'cd'},h('div',{id:'cpv',class:'small',style:'min-height:22px'}),h('div',{id:'cex',style:'font-size:30px;font-weight:700;min-height:42px'})),
+      h('div',{style:'display:grid;grid-template-columns:repeat(4,1fr);gap:10px'},keys.map(k=>h('button',{class:'ck'+(k==='='?' eq':k==='C'||k==='⌫'?' cl':/^[0-9,]$/.test(k)?'':' op'),'aria-label':k,on:{click:()=>calcKey(k)}},k))));
+    drawCalc();
+  }
+  if(S.v==='load')app.append(hdr(),h('div',{class:'grow'}),h('div',{class:'spin',role:'status','aria-label':'Chargement'}),h('p',{style:'text-align:center'},'EduMind prépare ton travail…'),h('div',{class:'grow'}));
+  if(S.v==='sum'){
+    const L=S.lesson;
+    app.append(hdr('Résumé'),h('span',{class:'chip'},S.subj||L.matiere||'Leçon'),h('h1',{style:'margin-top:4px'},L.titre||'Ton résumé'),
+      h('div',{class:'card'},h('h2',{},'À retenir'),h('ul',{},(L.resume||[]).map(x=>h('li',{},fmt(x))))),(L.fiche&&L.fiche.length?h('div',{class:'card'},h('h2',{},'À apprendre par cœur'),h('ul',{},L.fiche.map(f=>h('li',{},h('strong',{},mf(f.t)+' : '),fmt(f.v))))):null),p2('Compare avec ton cahier : l’IA peut se tromper.'),
+      h('div',{class:'grow'}),speakBtn(L),h('button',{on:{click:()=>startQuiz(L.questions,'lesson',S.subj||L.matiere)}},'Passer au questionnaire'),h('button',{class:'alt',on:{click:()=>makeDevoir([S.lid])}},'📝 Créer un devoir'),delLesson(),h('button',{class:'link',on:{click:()=>go(S.lid&&D.hist.some(x=>x.id===S.lid)?'lessons':'home')}},'Retour'));
+  }
+  if(S.v==='quiz'){
+    const q=S.qs[S.i],done=S.picked!==null,lab=h('span',{},'Question '+(S.i+1)+' sur '+S.qs.length);
+    if(S.mode==='exam'){lab.append(' · ',h('span',{id:'tm'},'0:00'));tick=setInterval(()=>{const e=document.getElementById('tm');if(e){const s=Math.floor((Date.now()-S.t0)/1000);e.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}},1000)}
+    app.append(hdr(lab),h('div',{class:'bar'},h('i',{style:'width:'+(S.i/S.qs.length*100)+'%'})),h('h1',{style:'font-size:24px'},mf(q.q)),
+      h('div',{class:'stack'},q.choix.map((c,n)=>h('button',{class:'opt'+(done?(n===q.reponse?' ok':n===S.picked?' bad':''):''),on:{click:()=>answer(n)}},mf(c)))));
+    if(done)app.append(h('div',{class:'card'},h('strong',{},S.picked===q.reponse?'Bonne réponse ! ':'Pas tout à fait. '),fmt(q.explication||'')));
+    app.append(h('div',{class:'grow'}));
+    if(done)app.append(h('button',{on:{click:()=>S.i+1<S.qs.length?go('quiz',{i:S.i+1,picked:null}):finish()}},S.i+1<S.qs.length?'Question suivante':'Voir mon score'));
+  }
+  if(S.v==='score'){
+    const n=S.qs.length,note=(S.good/n*20).toFixed(1).replace('.0',''),sec=Math.floor((Date.now()-S.t0)/1000);
+    app.append(hdr('Terminé'),h('h1',{style:'text-align:center'},S.bad.length?'Bien joué !':'Parfait !'),h('div',{class:'score'},S.good+' / '+n),
+      p2(S.good+' bonne(s) réponse(s) sur '+n+(S.mode==='exam'?' · '+Math.floor(sec/60)+' min '+sec%60+' s':'')),
+      p2(S.bad.length?S.bad.length+' question(s) ajoutée(s) à ton cahier d’erreurs.':'Tout est réussi.'),h('div',{class:'grow'}));
+    if(S.bad.length&&S.mode!=='retry')app.append(h('button',{on:{click:()=>startQuiz(S.bad,'retry',S.subj)}},'Refaire les questions ratées'));
+    app.append(h('button',{class:'alt',on:{click:()=>go('home')}},'Accueil'));
+  }
+}
+render();
+</script>
+</body>
+</html>
